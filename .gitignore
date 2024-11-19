@@ -1,0 +1,11 @@
+Backups
+extracted_datasets
+NewDocument.docx
+
+ASNM-CDX-2009.csv
+ASNM-NBPOv2.csv
+ASNM-TUN.csv
+
+models
+sampleData
+__pycache__

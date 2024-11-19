@@ -1,0 +1,56 @@
+DONE: TODO: identify target classes (how many tagrget classes are there?, one, two, three or four)
+
+POSSIBLE TARGET CLASSES:    label_2: CDX<NPBO<TUN, - (legitamate traffic or a network buffer overflow attacks)
+                            label_3: TUN<NPBO, - (legitimate traffic/direct attacks/obfuscated attacks)
+                            label_poly: CDX<NPBO<TUN, - (ThreeOrTwoClassLabel_NetworkServiceAcronym)
+                            label_poly_s: TUN, - (Three Class Label_Nerwork Service Name_Set of Network Modification Technique)
+                            label_poly_o: NPBO - (Three Class Label_Obfuscation Technique Used_Network Service Acronymn)
+
+TARGET CLASSES:
+    ASNM-CDX-2009 - label_2
+    ASNM-TUN - label_3 (with direct and obfuscated attacks under one same class)
+    ASNM-NPBOv2 - label_3 (with direct and obfuscated attacks under one same class)
+
+DATA ANALYSIS:
+// waiting for target class identification
+// still thinking
+
+DATA PREPROCESSING: [depends on the models we are choosing]
+// waiting for target class identification
+
+FEATURE ENGINEERING:
+1. do Forward feature selection - for feature selection
+
+    ASNM-CDX-2009:
+        1. label_2 - target class and performed normal FFS for model training.
+    
+    ASNM-TUN and ASNM-NPBO:
+        3. MAYBE DROP the other label class columns.
+        1. They did FFS DL and FFS DOL selections for two binary classification respectively.
+        2. label_3 has three classes - legitamate traffic/direct attacks/obfuscated attacks - in this direct and obfuscated attacks are combined into one class.
+
+MODELS:
+
+AE Detector - LID (Local Intrinsic Dimensionality)
+
+Traditional ML Model
+Deep Learning Model
+??? still thinking
+
+ARCHITECTURE:
+
+input -> feature extractor -> DL Model -> AE Extractor ---yes--> ML based Model --> Final result
+                                |           |                                               ^
+                                |           |                                               |
+                                -------------------------------------------------------------
+
+EVALUATION:
+/// Not now, NOT YET....
+
+
+
+
+//////////////// CURRENT WORK NOTES
+
+1. implement\ a data preprocessor class with the strategy pattern - half way done.
+2. put the data column removing step from data splitter into data injector class
