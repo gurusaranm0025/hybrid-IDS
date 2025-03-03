@@ -32,18 +32,25 @@ def training(config: Config):
     X_test, y_test = dataset.get_test()
     
     print("\n ===> DNN Model:")
-    dnn_model = DNNModel(config)
-    dnn_model.train(X_train_res, y_train_res, X_train_t=X_train, y_train_t=y_train)
-    dnn_model.model_summary()
-    dnn_model.test(X_test, y_test)
-    dnn_model.save_activation_values(X=dataset.X, y=dataset.y)
-    dnn_model.save_model()
     
-    print("\n ===> AE Detector Model:")
-    ae_detector = AEDetector(config, estimator=AE_MODELS['SVC'][0], param_grid=AE_MODELS['SVC'][1])
-    ae_detector.train()
-    ae_detector.test()
-    ae_detector.save_model()
+    for dnn_mode, dnn_model_path in config.DNN_DICT.items():
+        if dnn_mode == "dense":
+            continue
+        print(f"\n\t\t ===> DNN TRAINING FOR {dnn_mode} ===>")
+        dnn_model = DNNModel(config, model_type=dnn_mode)
+        dnn_model.train(X_train_res, y_train_res, X_train_t=X_train, y_train_t=y_train)
+        dnn_model.model_summary()
+        dnn_model.test(X_test, y_test)
+        dnn_model.save_activation_values(X=dataset.X, y=dataset.y)
+        dnn_model.save_model()
+        dnn_model = None
+        
+        print(f"\n ===> AE Detector Model FOR ====> {dnn_mode}:")
+        ae_detector = AEDetector(config, model_type=dnn_mode ,estimator=AE_MODELS['SVC'][0], param_grid=AE_MODELS['SVC'][1])
+        ae_detector.train()
+        ae_detector.test()
+        ae_detector.save_model()
+        ae_detector = None
     
     print("\n ===> Semi-Supervised ML Model:")
     model = MLModel(config)
@@ -52,6 +59,6 @@ def training(config: Config):
     model.save_model()
 
 if __name__ == "__main__":
-    training(ConfigClassFactory.GetConfig('CDX'))
-    training(ConfigClassFactory.GetConfig('TUN'))
+    # training(ConfigClassFactory.GetConfig('CDX'))
+    # training(ConfigClassFactory.GetConfig('TUN'))
     training(ConfigClassFactory.GetConfig('NBPO'))

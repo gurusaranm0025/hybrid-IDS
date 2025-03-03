@@ -10,6 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.base import BaseEstimator
+from typing import Literal
 
 from ..config import Config, ConfigClassFactory
 from ..ingest_data import DataIngestorFactory
@@ -19,11 +20,12 @@ warnings.filterwarnings("ignore")
 
 class AEDetector:
     
-    def __init__(self, config: Config, estimator: BaseEstimator = None, param_grid: dict = {}, cv: int = 5, n_jobs: int = -1) -> None:
+    def __init__(self, config: Config, model_type: Literal['dense', 'conv1d', 'rnn'] ,estimator: BaseEstimator = None, param_grid: dict = {}, cv: int = 5, n_jobs: int = -1) -> None:
         self.config_ = config
         self._cv = cv
         self._n_jobs = n_jobs
         self._param_grid = param_grid
+        self.model_type = model_type
         
         if estimator == None:
             self._model: SVC = SVC(kernel='rbf', C=0.1, random_state=config.RANDOM_STATE)
@@ -52,8 +54,8 @@ class AEDetector:
             raise ValueError("No estimator value given.")
     
     def _load_dataset(self):
-        ingestor = DataIngestorFactory.GetDataIngestor(self.config_.LID_DATASET_PATH)
-        df = ingestor.ingest(self.config_.LID_DATASET_PATH, columns_to_drop=[], sep=',')
+        ingestor = DataIngestorFactory.GetDataIngestor(self.config_.LID_DICT[self.model_type])
+        df = ingestor.ingest(self.config_.LID_DICT[self.model_type], columns_to_drop=[], sep=',')
         dataset = DataSplitter(df, target_col=self.config_.LID_DATASET_TARGET)
         self.X_train_, self.X_test_, self.y_train_, self.y_test_ = dataset.get_train_test()
                 
@@ -104,7 +106,7 @@ class AEDetector:
         print("\n CONFUSION MATRIX : \n", confusion_matrix(y, y_pred))
     
     def save_model(self):
-        joblib.dump(self._model, self.config_.MODEL_PATH_AE)
+        joblib.dump(self._model, self.config_.AE_DICT[self.model_type])
     
     def load_model(self, param_grid: dict = None, cv: int = None):
         if param_grid != None:
@@ -112,7 +114,7 @@ class AEDetector:
         if cv != None:
             self._cv = cv
                         
-        self._model = joblib.load(self.config_.MODEL_PATH_AE)
+        self._model = joblib.load(self.config_.AE_DICT[self.model_type])
         self.grid_search_ = GridSearchCV(estimator=self._model, param_grid=self._param_grid, cv=self._cv, n_jobs=self._n_jobs, verbose=2)
 
 AE_MODELS = {

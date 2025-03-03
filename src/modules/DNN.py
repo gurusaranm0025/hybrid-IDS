@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import warnings
 
-from typing import Any
+from typing import Any, Literal
 from keras import models, layers, regularizers, callbacks, Model
 
 from ..config import ConfigClassFactory, Config
@@ -14,11 +14,22 @@ from .LID import compute_lid_df
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("default")
 
+def reshape_3D(X: pd.DataFrame) -> np.ndarray:
+    curr_shape = X.shape
+    print("\n ==> curr_shape ==>")
+    print(curr_shape)
+    
+    if len(curr_shape) > 1:
+        return X.values.reshape(curr_shape[0], curr_shape[1])
+    else:
+        return X.values.reshape(curr_shape[0], 1)
+
 class DNNModel:
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: Config, model_type: Literal['dense', 'conv1d', 'rnn'] = 'dense') -> None:
         self.config_ = config
         self.model_ = models.Sequential()
         self.history_: str | Any = ""
+        self.model_type = model_type
         
         self.activation_model_ = None
         self.X_train_: pd.DataFrame = None
@@ -29,23 +40,59 @@ class DNNModel:
         
         self.activation_model_ = models.Model(inputs=self.model_.inputs, outputs=layer_outputs)
     
-    def _init_model(self, X_train: pd.DataFrame) -> None:
+    def _init_model(self, X_train: pd.DataFrame) -> None:             
         print("\n Input Shape ==> ", X_train.shape[1])
-        self.model_.add(layers.Dense(128, activation='relu', input_shape=(X_train.shape[1],), kernel_regularizer=regularizers.l2(0.01)))
-        self.model_.add(layers.BatchNormalization())
         
-        self.model_.add(layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
-        self.model_.add(layers.BatchNormalization())
+        if self.model_type == "dense":
+            self.model_.add(layers.Dense(128, activation='relu', input_shape=(X_train.shape[1],), kernel_regularizer=regularizers.l2(0.01)))
+    
+            self.model_.add(layers.BatchNormalization())
+            
+            self.model_.add(layers.Dense(64, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
+            self.model_.add(layers.BatchNormalization())
+            
+            self.model_.add(layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
+            self.model_.add(layers.BatchNormalization())
+            
+            self.model_.add(layers.Dense(8, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
+            
+            self.model_.add(layers.Dense(2, activation='softmax'))
+            
+            self.model_.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])  
         
-        self.model_.add(layers.Dense(32, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
-        self.model_.add(layers.BatchNormalization())
+        if self.model_type == "conv1d":
+            self.model_.add(layers.Dense(128, activation='relu', input_shape=(X_train.shape[1], 1), kernel_regularizer=regularizers.l2(0.01)))
+    
+            self.model_.add(layers.Conv1D(filters=64, kernel_size=3, activation='relu'))
+            self.model_.add(layers.BatchNormalization())
+            self.model_.add(layers.MaxPooling1D(pool_size=2))
+            
+            self.model_.add(layers.Conv1D(filters=128, kernel_size=3, activation='relu'))
+            self.model_.add(layers.MaxPool1D(pool_size=2))
+            
+            self.model_.add(layers.Flatten())
+            
+            self.model_.add(layers.Dense(64, activation='relu'))
+            self.model_.add(layers.Dropout(0.2))
+            self.model_.add(layers.Dense(1, activation='sigmoid'))
+            
+            self.model_.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
         
-        self.model_.add(layers.Dense(8, activation='relu', kernel_regularizer=regularizers.l2(0.01)))
-        
-        self.model_.add(layers.Dense(2, activation='softmax'))
-        
-        self.model_.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])        
-        
+        if self.model_type == 'rnn':
+            self.model_.add(layers.Dense(128, activation='relu', input_shape=(X_train.shape[1], 1)))
+            
+            self.model_.add(layers.LSTM(64, return_sequences=True))
+            self.model_.add(layers.Dropout(0.3))
+            
+            self.model_.add(layers.LSTM(32))
+            self.model_.add(layers.Dropout(0.2))
+            
+            self.model_.add(layers.Dense(64, activation='relu'))
+            self.model_.add(layers.Dropout(0.2))
+            self.model_.add(layers.Dense(1, activation='sigmoid'))
+            
+            self.model_.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+                    
         print("===> MODEL INITIATED:")
     
     def model_summary(self) -> None:
@@ -54,6 +101,10 @@ class DNNModel:
         """
         print("\n ==> MODEL SUMMARY")
         self.model_.summary()
+    
+    def _reshape_train(self):        
+        self.X_train_ = reshape_3D(self.X_train_)
+        self.y_train_ = reshape_3D(self.y_train_)
     
     def train(self, X_train: pd.DataFrame, y_train: pd.DataFrame, X_train_t: pd.DataFrame = None, y_train_t: pd.DataFrame = None) -> None:
         """
@@ -72,6 +123,9 @@ class DNNModel:
         
         # early_stopping = callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
         
+        if self.model_type == 'conv1d':
+            self._reshape_train()
+                
         self.history_ = self.model_.fit(self.X_train_, self.y_train_, epochs=50, batch_size=32, validation_split=0.2, callbacks=[])
         self._init_activation_model()
     
@@ -86,6 +140,10 @@ class DNNModel:
             X_test (pandas.DataFrame) - testing input features.
             y_test (pandas.DataFrame) - actual outcome of the input features.
         """
+        if self.model_type == "conv1d":
+            X_test = reshape_3D(X_test)
+            y_test = reshape_3D(y_test)
+        
         loss, accuracy = self.model_.evaluate(X_test, y_test, verbose=2) #.iloc[:, self.config_.SELECTED_FEATURES]
         
         print("\n => TEST RESULTS")
@@ -125,25 +183,25 @@ class DNNModel:
             combined_activations = np.concatenate(flattened_activations, axis=1)
             
             act_df = pd.DataFrame(combined_activations)
-            act_df.to_csv(self.config_.ACT_VALUES_DATASET_PATH, index=False)
+            act_df.to_csv(self.config_.ACT_VALS_DICT[self.model_type], index=False)
             
             lid_df = compute_lid_df(combined_activations, self.config_.LID_K)            
             lid_df['target'] = y
-            lid_df.to_csv(self.config_.LID_DATASET_PATH, index=False)
+            lid_df.to_csv(self.config_.LID_DICT[self.model_type], index=False)
             
-            print(f"\n ACTIVATION VALUES ARE SAVED IN THE PATH : {self.config_.LID_DATASET_PATH}")
+            print(f"\n LID VALUES OF THE ACTIVATION VALUES ARE SAVED IN THE PATH : {self.config_.LID_DICT[self.model_type]}")
             
         else:
             print("\n ACTIVATION VALUES ARE NOT SAVED.")
             print("\n TRAIN THE MODEL, TO SAVE THE ACTIVATION VALUES.")
     
     def save_model(self):
-        self.model_.save(self.config_.MODEL_PATH_DNN)
+        self.model_.save_weights(self.config_.DNN_DICT[self.model_type])
     
-    def load_model(self):
-        self.model_ = models.load_model(self.config_.MODEL_PATH_DNN)
+    def load_model(self, X_train: pd.DataFrame | np.ndarray):
+        self._init_model(X_train=X_train)
+        self.model_.load_weights(self.config_.DNN_DICT[self.model_type])
             
-
 if __name__ == "__main__":
     
     config: Config = ConfigClassFactory.GetConfig('NBPO')

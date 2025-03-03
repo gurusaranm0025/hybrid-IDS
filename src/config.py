@@ -12,21 +12,45 @@ class Config(ABC):
         SELECTED_FEATURES: list
         SAMPLE_DATASET_PATH: str
         
-        ACT_VALUES_DATASET_PATH: str
-        LID_DATASET_PATH: str
+        # ACT_VALUES_DATASET_PATH: str
+        # LID_DATASET_PATH: str
         
-        MODEL_PATH_DNN: str
-        MODEL_PATH_AE: str
+        ACT_VALS_DENSE: str
+        ACT_VALS_CONV: str
+        ACT_VALS_RNN: str
+        
+        ACT_VALS_DICT: dict
+        
+        LID_DENSE: str
+        LID_CONV: str
+        LID_RNN: str
+        
+        LID_DICT: dict
+        
+        AE_DENSE: str
+        AE_CONV: str
+        AE_RNN: str
+        
+        AE_DICT: dict
+        
+        # MODEL_PATH_DNN: str
+        # MODEL_PATH_AE: str
         MODEL_PATH_LP: str
         
         NAIVE_BAYES_MODEL_PATH: str
         DECISION_TREE_MODEL_PATH: str
         SVM_MODEL_PATH: str
-
+        
+        DNN_DENSE: str
+        DNN_CONV: str
+        DNN_RNN: str
+        
         LID_DATASET_TARGET: str = "target"
         RANDOM_STATE: int = 42
         TEST_SIZE: int | float = 0.3
         LID_K: int = 16
+        
+        DNN_DICT: dict 
         
         
 class ASNM_CDX(Config):
@@ -40,16 +64,58 @@ class ASNM_CDX(Config):
         SELECTED_FEATURES = [0,1,2,3,4,5,6,7,8,13,14,15,20,21,27,34,36,65,69,77,93,164,182,183,215,223,224,225,226,227,241,243,244,371,567,568,571,771,802,803,872]
         SAMPLE_DATASET_PATH = "./sampleData/ASNM-CDX-sample.csv"
         
-        ACT_VALUES_DATASET_PATH = "./extracted_data/activation_values_"+DATASET_NAME+".csv"
-        LID_DATASET_PATH = "./extracted_data/lid_"+DATASET_NAME+".csv"
+        # ACT_VALUES_DATASET_PATH = "./extracted_data/activation_values_"+DATASET_NAME+".csv"
+        # LID_DATASET_PATH = "./extracted_data/lid_"+DATASET_NAME+".csv"
         
-        MODEL_PATH_DNN = "./models/dnn_"+DATASET_NAME+".h5"
-        MODEL_PATH_AE = "./models/ae_"+DATASET_NAME+".model"
+        ACT_VALS_DENSE = "./extracted_data/activation_values_dense_"+DATASET_NAME+".csv"
+        ACT_VALS_CONV = "./extracted_data/activation_values_conv_"+DATASET_NAME+".csv"
+        ACT_VALS_RNN = "./extracted_data/activation_values_rnn_"+DATASET_NAME+".csv"
+        
+        ACT_VALS_DICT = {
+            'dense': ACT_VALS_DENSE,
+            'conv1d': ACT_VALS_CONV,
+            'rnn': ACT_VALS_RNN
+        }
+        
+        LID_DENSE = "./extracted_data/lid_dense_"+DATASET_NAME+".csv"
+        LID_CONV = "./extracted_data/lid_conv_"+DATASET_NAME+".csv"
+        LID_RNN = "./extracted_data/lid_rnn_"+DATASET_NAME+".csv"
+        
+        LID_DICT = {
+            'dense': LID_DENSE,
+            'conv1d': LID_CONV,
+            'rnn': LID_RNN,
+        }
+
+        
+        AE_DENSE = "./models/ae_dense_"+DATASET_NAME+".model"
+        AE_CONV = "./models/ae_conv_"+DATASET_NAME+".model"
+        AE_RNN = "./models/ae_rnn_"+DATASET_NAME+".model"
+
+        AE_DICT = {
+            'dense': AE_DENSE,
+            'conv1d': AE_CONV,
+            'rnn': AE_RNN
+        }
+        
+        # MODEL_PATH_DNN = "./models/dnn_"+DATASET_NAME+".h5"
+        # MODEL_PATH_AE = "./models/ae_"+DATASET_NAME+".model"
         MODEL_PATH_LP = "./models/lp_"+DATASET_NAME+".model"
         
         NAIVE_BAYES_MODEL_PATH: str = "./models/naive_bayes_"+DATASET_NAME+".model"
         DECISION_TREE_MODEL_PATH: str = "./models/decision_tree_"+DATASET_NAME+".model"
         SVM_MODEL_PATH: str = "./models/svm_"+DATASET_NAME+".model"
+        
+        DNN_DENSE = "./models/dnn_dense_"+DATASET_NAME+".weights.h5"
+        DNN_CONV = "./models/dnn_conv_"+DATASET_NAME+".weights.h5"
+        DNN_RNN = "./models/dnn_rnn_"+DATASET_NAME+".weights.h5"
+        
+        DNN_DICT = {
+            'dense': DNN_DENSE,
+            'conv1d': DNN_CONV,
+            'rnn': DNN_RNN
+        }
+
 
 
 class ASNM_TUN(Config):
@@ -63,16 +129,57 @@ class ASNM_TUN(Config):
         SELECTED_FEATURES = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,36,37,39,52,587]
         SAMPLE_DATASET_PATH = "./sampleData/ASNM-TUN-sample.csv"
         
-        ACT_VALUES_DATASET_PATH = "./extracted_data/activation_values_"+DATASET_NAME+".csv"
-        LID_DATASET_PATH = "./extracted_data/lid_"+DATASET_NAME+".csv"
+        # ACT_VALUES_DATASET_PATH = "./extracted_data/activation_values_"+DATASET_NAME+".csv"
+        # LID_DATASET_PATH = "./extracted_data/lid_"+DATASET_NAME+".csv"
+
+        ACT_VALS_DENSE = "./extracted_data/activation_values_dense_"+DATASET_NAME+".csv"
+        ACT_VALS_CONV = "./extracted_data/activation_values_conv_"+DATASET_NAME+".csv"
+        ACT_VALS_RNN = "./extracted_data/activation_values_rnn_"+DATASET_NAME+".csv"
         
-        MODEL_PATH_DNN = "./models/dnn_"+DATASET_NAME+".h5"
-        MODEL_PATH_AE = "./models/ae_"+DATASET_NAME+".model"
+        ACT_VALS_DICT = {
+            'dense': ACT_VALS_DENSE,
+            'conv1d': ACT_VALS_CONV,
+            'rnn': ACT_VALS_RNN
+        }
+        
+        LID_DENSE = "./extracted_data/lid_dense_"+DATASET_NAME+".csv"
+        LID_CONV = "./extracted_data/lid_conv_"+DATASET_NAME+".csv"
+        LID_RNN = "./extracted_data/lid_rnn_"+DATASET_NAME+".csv"
+
+        LID_DICT = {
+            'dense': LID_DENSE,
+            'conv1d': LID_CONV,
+            'rnn': LID_RNN,
+        }
+
+        AE_DENSE = "./models/ae_dense_"+DATASET_NAME+".model"
+        AE_CONV = "./models/ae_conv_"+DATASET_NAME+".model"
+        AE_RNN = "./models/ae_rnn_"+DATASET_NAME+".model"
+
+        AE_DICT = {
+            'dense': AE_DENSE,
+            'conv1d': AE_CONV,
+            'rnn': AE_RNN
+        }
+        
+        # MODEL_PATH_DNN = "./models/dnn_"+DATASET_NAME+".h5"
+        # MODEL_PATH_AE = "./models/ae_"+DATASET_NAME+".model"
         MODEL_PATH_LP = "./models/lp_"+DATASET_NAME+".model"
 
         NAIVE_BAYES_MODEL_PATH: str = "./models/naive_bayes_"+DATASET_NAME+".model"
         DECISION_TREE_MODEL_PATH: str = "./models/decision_tree_"+DATASET_NAME+".model"
         SVM_MODEL_PATH: str = "./models/svm_"+DATASET_NAME+".model"
+        
+        DNN_DENSE = "./models/dnn_dense_"+DATASET_NAME+".weights.h5"
+        DNN_CONV = "./models/dnn_conv_"+DATASET_NAME+".weights.h5"
+        DNN_RNN = "./models/dnn_rnn_"+DATASET_NAME+".weights.h5"
+
+        DNN_DICT = {
+            'dense': DNN_DENSE,
+            'conv1d': DNN_CONV,
+            'rnn': DNN_RNN
+        }
+
 
 class ASNM_NBPO(Config):
         DATASET_NAME = "NBPO"
@@ -86,16 +193,56 @@ class ASNM_NBPO(Config):
         SELECTED_FEATURES = [0, 1, 2, 3, 4, 8, 10, 11, 12, 13, 14, 16, 20, 30, 33, 35, 52, 60, 62, 66, 115, 171, 177, 218, 268, 271, 364, 530, 557, 572, 578, 588, 598, 599, 798, 837, 850, 858, 871, 889, 896, 898]
         SAMPLE_DATASET_PATH = "./sampleData/ASNM-NBPO-sample.csv"
         
-        ACT_VALUES_DATASET_PATH = "./extracted_data/activation_values_"+DATASET_NAME+".csv"
-        LID_DATASET_PATH = "./extracted_data/lid_"+DATASET_NAME+".csv"
+        # ACT_VALUES_DATASET_PATH = "./extracted_data/activation_values_"+DATASET_NAME+".csv"
+        # LID_DATASET_PATH = "./extracted_data/lid_"+DATASET_NAME+".csv"
+
+        ACT_VALS_DENSE = "./extracted_data/activation_values_dense_"+DATASET_NAME+".csv"
+        ACT_VALS_CONV = "./extracted_data/activation_values_conv_"+DATASET_NAME+".csv"
+        ACT_VALS_RNN = "./extracted_data/activation_values_rnn_"+DATASET_NAME+".csv"
+
+        ACT_VALS_DICT = {
+            'dense': ACT_VALS_DENSE,
+            'conv1d': ACT_VALS_CONV,
+            'rnn': ACT_VALS_RNN
+        }
         
-        MODEL_PATH_DNN = "./models/dnn_"+DATASET_NAME+".h5"
-        MODEL_PATH_AE = "./models/ae_"+DATASET_NAME+".model"
+        LID_DENSE = "./extracted_data/lid_dense_"+DATASET_NAME+".csv"
+        LID_CONV = "./extracted_data/lid_conv_"+DATASET_NAME+".csv"
+        LID_RNN = "./extracted_data/lid_rnn_"+DATASET_NAME+".csv"
+
+        LID_DICT = {
+            'dense': LID_DENSE,
+            'conv1d': LID_CONV,
+            'rnn': LID_RNN,
+        }
+
+        AE_DENSE = "./models/ae_dense_"+DATASET_NAME+".model"
+        AE_CONV = "./models/ae_conv_"+DATASET_NAME+".model"
+        AE_RNN = "./models/ae_rnn_"+DATASET_NAME+".model"
+
+        AE_DICT = {
+            'dense': AE_DENSE,
+            'conv1d': AE_CONV,
+            'rnn': AE_RNN
+        }
+        
+        # MODEL_PATH_DNN = "./models/dnn_"+DATASET_NAME+".h5"
+        # MODEL_PATH_AE = "./models/ae_"+DATASET_NAME+".model"
         MODEL_PATH_LP = "./models/lp_"+DATASET_NAME+".model"
 
         NAIVE_BAYES_MODEL_PATH: str = "./models/naive_bayes_"+DATASET_NAME+".model"
         DECISION_TREE_MODEL_PATH: str = "./models/decision_tree_"+DATASET_NAME+".model"
         SVM_MODEL_PATH: str = "./models/svm_"+DATASET_NAME+".model"
+
+        DNN_DENSE = "./models/dnn_dense_"+DATASET_NAME+".weights.h5"
+        DNN_CONV = "./models/dnn_conv_"+DATASET_NAME+".weights.h5"
+        DNN_RNN = "./models/dnn_rnn_"+DATASET_NAME+".weights.h5"
+
+        DNN_DICT = {
+            'dense': DNN_DENSE,
+            'conv1d': DNN_CONV,
+            'rnn': DNN_RNN
+        }
 
 class ConfigClassFactory:
     @staticmethod

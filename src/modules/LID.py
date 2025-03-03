@@ -5,6 +5,7 @@ from scipy.spatial import distance_matrix
 from scipy.spatial.distance import cdist
 from sklearn.neighbors import NearestNeighbors
 from sklearn.decomposition import PCA
+from typing import Literal
 
 from ..config import Config
 # from ..ingest_data import DataIngestorFactory
@@ -51,26 +52,69 @@ def compute_lid_local_pca(X: np.ndarray, k: int):
     
     return np.array(lid_vals)
 
-class LID:
-    def __init__(self, config: Config) -> None:
-        self.config_ = config
-        self.dataset_: pd.DataFrame = pd.read_csv(self.config_.ACT_VALUES_DATASET_PATH)        
+# class LID:
+#     def __init__(self, config: Config, model_type: Literal['dense', 'conv1d', 'rnn'] = 'dense') -> None:
+#         self.config_ = config
+#         self.model_type_ = model_type
+#         self.dataset_: pd.DataFrame = pd.read_csv(self.config_.ACT_VALS_DICT[model_type])        
     
-    def compute_lid_model(self, X: np.ndarray, k: int = None) -> pd.DataFrame:
-        if k == None:
-            k = self.config_.LID_K
+#     def compute_lid_model(self, X: np.ndarray, k: int = None) -> pd.DataFrame:
+#         if k == None:
+#             k = self.config_.LID_K
         
-        dist_matrix = cdist(X, X, metric='euclidean')
-        nearest_neighbors = np.sort(dist_matrix, axis=1)[:, 1:k+1]
-        nn_df = pd.DataFrame(nearest_neighbors)
-        lid_vals = nn_df.apply(compute_lid, axis=1)
+#         dist_matrix = cdist(X, X, metric='euclidean')
+#         nearest_neighbors = np.sort(dist_matrix, axis=1)[:, 1:k+1]
+#         nn_df = pd.DataFrame(nearest_neighbors)
+#         lid_vals = nn_df.apply(compute_lid, axis=1)
     
+#         return pd.DataFrame(lid_vals, columns=['LID'])
+    
+#     def compute_lid_predict(self, X: pd.DataFrame) -> np.ndarray:
+#         X.columns = self.dataset_.columns
+#         X = pd.concat([self.dataset_, X])
+        
+#         result = self.compute_lid_model(X)
+#         return result[self.dataset_.shape[0]:]
+
+# from sklearn.neighbors import NearestNeighbors
+# import numpy as np
+# import pandas as pd
+
+class LID:
+    def __init__(self, config: Config, model_type: Literal['dense', 'conv1d', 'rnn'] = 'dense') -> None:
+        self.config_ = config
+        self.model_type_ = model_type
+        self.dataset_: pd.DataFrame = pd.read_csv(self.config_.ACT_VALS_DICT[model_type])
+        self.k_ = self.config_.LID_K
+        
+        # Precompute nearest neighbors for the dataset
+        self.nbrs_ = NearestNeighbors(n_neighbors=self.k_, metric='euclidean').fit(self.dataset_.values)
+    
+    def compute_lid_single(self, distances: np.ndarray) -> float:
+        """
+        Compute LID for a single point using distances to its neighbors.
+        """
+        if len(distances) < 2:
+            return 0.0  # Avoid log(0) error for isolated points
+        distances = np.sort(distances)
+        return -1 / np.mean(np.log(distances[1:] / distances[0]))
+    
+    def compute_lid_model(self, X: np.ndarray) -> pd.DataFrame:
+        """
+        Compute LID for all points in X relative to the dataset.
+        """
+        print("\n -->calcing lid vals for models")
+        # Find nearest neighbors in the dataset for X
+        distances, _ = self.nbrs_.kneighbors(X, n_neighbors=self.k_)
+        lid_vals = [self.compute_lid_single(dist) for dist in distances]
+        
         return pd.DataFrame(lid_vals, columns=['LID'])
     
     def compute_lid_predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Compute LID for new data points in X.
+        """
+        print("\n -->calcing lid vals")
+        # Align columns
         X.columns = self.dataset_.columns
-        X = pd.concat([self.dataset_, X])
-        
-        result = self.compute_lid_model(X)
-        return result[self.dataset_.shape[0]:]
-        
+        return self.compute_lid_model(X.values).fillna(0).to_numpy()
